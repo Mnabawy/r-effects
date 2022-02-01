@@ -1,9 +1,17 @@
-import React, { useEffect, useState, useReducer } from "react";
+import React, {
+  useEffect,
+  useState,
+  useReducer,
+  useContext,
+  useRef,
+} from "react";
 
 import Card from "../UI/Card/Card";
 import classes from "./Login.module.css";
 import Button from "../UI/Button/Button";
 import Input from "../UI/Input/Input";
+
+import { AuthContext } from "../../context/auth-context";
 
 // actions
 const USER_INPUT = "USER_INPUT";
@@ -52,8 +60,10 @@ const passwordReducer = (state, action) => {
 };
 
 const Login = props => {
-  const [formIsValid, setFormIsValid] = useState(false);
+  const emailInputRef = useRef();
+  const passwordInputRef = useRef();
 
+  const [formIsValid, setFormIsValid] = useState(false);
   const [emailState, dispatchEmail] = useReducer(emailReducer, {
     value: "",
     isValid: null,
@@ -101,15 +111,24 @@ const Login = props => {
     dispatchPassword({ type: INPUT_BLUR });
   };
 
+  const { onLogin } = useContext(AuthContext);
   const submitHandler = event => {
     event.preventDefault();
-    props.onLogin(emailState.value, passwordState.value);
+
+    if (formIsValid) {
+      onLogin(emailState.value, passwordState.value);
+    } else if (!emailIsValid) {
+      emailInputRef.current.focus();
+    } else if (!passwordIsValid) {
+      passwordInputRef.current.focus();
+    }
   };
 
   return (
     <Card className={classes.login}>
       <form onSubmit={submitHandler}>
         <Input
+          ref={emailInputRef}
           label="E-Mail"
           type="email"
           id="email"
@@ -120,6 +139,7 @@ const Login = props => {
         />
 
         <Input
+          ref={passwordInputRef}
           label="Password"
           type="password"
           id="password"
@@ -129,7 +149,7 @@ const Login = props => {
           isValid={passwordState.isValid}
         />
         <div className={classes.actions}>
-          <Button type="submit" className={classes.btn} disabled={!formIsValid}>
+          <Button type="submit" className={classes.btn}>
             Login
           </Button>
         </div>
@@ -140,6 +160,6 @@ const Login = props => {
 
 export default Login;
 
-// useEffect(() => {
+// Effect(() => {
 //   console.log("effect running");
 // }, [enteredEmail]);
